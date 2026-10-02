@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Endless Calendar Pro – ein Kalender in einer einzigen Datei</title>
+<meta name="description" content="Endless Calendar Pro: ein vollständiger Kalender in einer einzigen HTML-Datei. Offline, ohne Installation, ohne Konto. Hier direkt ausprobieren.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%85%3C/text%3E%3C/svg%3E">
+<!--
+  Projektseite für Endless Calendar Pro (GitHub Pages).
+  Copyright (c) 2026 Heinz Bundschuh – MIT License.
+
+  Bei einer neuen Version nur die Zeile  const APP_FILE = "..."  weiter unten anpassen
+  (und die drei Verweise auf die Datei in den Knöpfen – sie tragen data-app).
+  Die Seite lädt nichts von fremden Servern.
+-->
+<style>
+:root{
+  /* Farben aus dem Kalender selbst */
+  --schiefer:#2c3e50;      /* Kopfleiste des Kalenders */
+  --schiefer-hell:#34495e;
+  --wolke:#eef1f3;         /* Seitenhintergrund */
+  --blatt:#ffffff;         /* Flächen */
+  --heute:#1e9e55;         /* Heute-Markierung */
+  --sonntag:#d8432f;       /* Sonn- und Feiertage */
+  --linie:#cfd6dc;
+  --text:#22313f;
+  --text-leise:#5b6b79;
+  --schrift-din:"Bahnschrift","DIN Alternate","DIN Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+  --schrift:system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --breite:1180px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --wolke:#18222c;--blatt:#212e3b;--linie:#3a4958;
+    --text:#e8edf1;--text-leise:#a3b1bd;--schiefer:#101820;--schiefer-hell:#2c3e50;
+    --heute:#34c074;--sonntag:#ff7a66;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--wolke);color:var(--text);font:17px/1.55 var(--schrift)}
+a{color:inherit}
+a:focus-visible,button:focus-visible{outline:3px solid var(--heute);outline-offset:3px;border-radius:4px}
+img{max-width:100%;display:block}
+
+.rand{max-width:var(--breite);margin:0 auto;padding:0 24px}
+
+/* ---------- Kopf ---------- */
+.kopf{background:var(--schiefer);color:#fff}
+.kopf .rand{display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center;padding-top:44px;padding-bottom:44px;position:relative}
+
+/* Kalenderblatt mit dem heutigen Datum */
+.kalenderblatt{width:168px;background:#fff;color:#22313f;border-radius:6px;overflow:hidden;
+  box-shadow:0 2px 0 #c9d2d9,0 4px 0 #fff,0 6px 0 #c9d2d9,0 18px 30px rgba(0,0,0,.35);
+  font-family:var(--schrift-din);text-align:center}
+.kalenderblatt .monat{background:var(--sonntag);color:#fff;font-size:17px;letter-spacing:.04em;padding:7px 6px 6px}
+.kalenderblatt .tag{font-size:92px;line-height:1;font-weight:700;padding:12px 0 2px;font-variant-numeric:tabular-nums}
+.kalenderblatt .wochentag{font-size:20px;padding-bottom:6px}
+.kalenderblatt .kw{border-top:1px solid #dfe5ea;color:#5b6b79;font:13px/1 var(--schrift);padding:8px 4px}
+.kalenderblatt.rot .tag,.kalenderblatt.rot .wochentag{color:#d8432f}
+
+.kopf h1{font:700 clamp(38px,6vw,68px)/1.02 var(--schrift-din);margin:0 0 14px;letter-spacing:.005em}
+.kopf p.lead{font-size:clamp(18px,2.1vw,22px);line-height:1.4;margin:0 0 26px;max-width:34em;color:#dbe4ea}
+.knoepfe{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.knopf{display:inline-block;text-decoration:none;font:600 17px/1 var(--schrift);padding:14px 20px;border-radius:6px;border:2px solid transparent}
+.knopf.haupt{background:var(--heute);color:#fff}
+.knopf.haupt:hover{filter:brightness(1.08)}
+.knopf.neben{border-color:#8ea0af;color:#fff}
+.knopf.neben:hover{border-color:#fff}
+
+.sprache{position:absolute;top:14px;right:24px;display:flex;gap:2px;font:600 14px/1 var(--schrift)}
+.sprache button{background:none;border:1px solid #6d7f8e;color:#dbe4ea;padding:7px 10px;cursor:pointer;font:inherit}
+.sprache button:first-child{border-radius:5px 0 0 5px}
+.sprache button:last-child{border-radius:0 5px 5px 0;border-left:0}
+.sprache button[aria-pressed="true"]{background:#fff;color:#22313f;border-color:#fff}
+
+/* ---------- Kalender zum Ausprobieren ---------- */
+.probe{background:linear-gradient(var(--schiefer) 0 120px,transparent 120px)}
+.probe .rahmen{background:var(--blatt);border-radius:8px;overflow:hidden;box-shadow:0 20px 50px rgba(16,24,32,.28)}
+.probe .hinweis{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;justify-content:space-between;
+  padding:11px 16px;background:var(--schiefer-hell);color:#fff;font-size:15px}
+.probe .hinweis strong{font:700 17px/1.2 var(--schrift-din);letter-spacing:.02em}
+.probe .hinweis span{color:#d2dce4}
+.probe iframe{display:block;width:100%;height:min(82vh,820px);min-height:560px;border:0;background:#ecf0f1}
+
+/* ---------- Abschnitte ---------- */
+section.block{padding:64px 0 8px}
+section.block h2{font:700 clamp(28px,3.4vw,38px)/1.1 var(--schrift-din);margin:0 0 6px}
+section.block p.unter{margin:0 0 26px;color:var(--text-leise);max-width:46em}
+
+/* Funktionen als Zeilen wie in einem Kalender: links das Stichwort, rechts der Eintrag */
+.zeilen{border-top:2px solid var(--text);margin:0;padding:0}
+.zeilen div{display:grid;grid-template-columns:220px 1fr;gap:8px 28px;padding:16px 0;border-bottom:1px solid var(--linie)}
+.zeilen dt{font:700 20px/1.25 var(--schrift-din)}
+.zeilen dd{margin:0;max-width:44em}
+
+/* Bilder */
+.bilder{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+.bilder figure{margin:0;grid-column:span 6}
+.bilder figure.schmal{grid-column:span 3}
+.bilder figure.breit{grid-column:span 9}
+.bilder a{display:block;border:1px solid var(--linie);border-radius:6px;overflow:hidden;background:var(--blatt)}
+.bilder img{width:100%;height:100%;object-fit:cover;object-position:top left}
+.bilder figure.schmal img{aspect-ratio:9/16}
+.bilder figure.breit img{aspect-ratio:27/16}
+.bilder figcaption{font-size:15px;color:var(--text-leise);padding-top:7px}
+
+/* Schritte: eine echte Reihenfolge, deshalb nummeriert */
+.schritte{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.schritte li{counter-increment:s;border-top:2px solid var(--text);padding-top:12px}
+.schritte li::before{content:counter(s);display:block;font:700 46px/1 var(--schrift-din);color:var(--sonntag);margin-bottom:6px}
+.schritte h3{font:700 21px/1.2 var(--schrift-din);margin:0 0 6px}
+.schritte p{margin:0}
+
+.zwei{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.zwei h3{font:700 21px/1.2 var(--schrift-din);margin:0 0 6px}
+.zwei p{margin:0 0 12px;max-width:34em}
+
+footer{margin-top:72px;background:var(--schiefer);color:#d2dce4;font-size:15px}
+footer .rand{display:flex;flex-wrap:wrap;gap:8px 28px;justify-content:space-between;padding-top:22px;padding-bottom:22px}
+
+@media (max-width:860px){
+  .kopf .rand{grid-template-columns:1fr;gap:22px;padding-top:58px}
+  .kalenderblatt{width:118px}
+  .kalenderblatt .monat{font-size:14px;letter-spacing:0}
+  .kalenderblatt .tag{font-size:58px;padding-top:8px}
+  .kalenderblatt .wochentag{font-size:17px}
+  .kalenderblatt .kw{font-size:11px}
+  .zeilen div{grid-template-columns:1fr}
+  .bilder figure,.bilder figure.schmal,.bilder figure.breit{grid-column:span 12}
+  .bilder figure.schmal{max-width:300px}
+  .schritte,.zwei{grid-template-columns:1fr}
+  .probe iframe{height:78vh}
+}
+</style>
+</head>
+<body>
+
+<header class="kopf">
+  <div class="rand">
+    <div class="sprache" role="group" aria-label="Sprache / Language">
+      <button type="button" id="langDe" aria-pressed="true">Deutsch</button><button type="button" id="langEn" aria-pressed="false">English</button>
+    </div>
+
+    <div class="kalenderblatt" id="blatt" aria-hidden="true">
+      <div class="monat" id="blattMonat">&nbsp;</div>
+      <div class="tag" id="blattTag">&nbsp;</div>
+      <div class="wochentag" id="blattWochentag">&nbsp;</div>
+      <div class="kw" id="blattKw">&nbsp;</div>
+    </div>
+
+    <div>
+      <h1>Endless Calendar Pro</h1>
+      <p class="lead" data-en="A complete calendar in one single file. Open it in your browser and start – offline, without installation, without an account.">Ein vollständiger Kalender in einer einzigen Datei. Im Browser öffnen und loslegen – offline, ohne Installation, ohne Konto.</p>
+      <div class="knoepfe">
+        <a class="knopf haupt" data-app href="endless_calendar_pro_V3_1.html" target="_blank" rel="noopener" data-en="Open the calendar">Kalender öffnen</a>
+        <a class="knopf neben" data-app href="endless_calendar_pro_V3_1.html" download data-en="Download the file">Datei herunterladen</a>
+        <a class="knopf neben" href="https://github.com/HeinzBundschuh/endless-calendar-pro" data-en="Source code on GitHub">Quellcode auf GitHub</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="probe" id="probe" aria-label="Kalender zum Ausprobieren">
+  <div class="rand">
+    <div class="rahmen">
+      <div class="hinweis">
+        <strong data-en="Try it here">Hier ausprobieren</strong>
+        <span data-en="This is the real calendar with sample events. Nothing you change here is saved.">Das ist der echte Kalender mit Beispielterminen. Was du hier änderst, wird nicht gespeichert.</span>
+      </div>
+      <iframe id="demo" title="Endless Calendar Pro" sandbox="allow-scripts allow-modals allow-downloads allow-popups" allowfullscreen loading="lazy"></iframe>
+    </div>
+  </div>
+</section>
+
+<main>
+  <section class="block">
+    <div class="rand">
+      <h2 data-en="What it can do">Was er kann</h2>
+      <p class="unter" data-en="The user interface is in German. Try the right-click menu and drag an event to another day in the calendar above.">Probier im Kalender oben den Rechtsklick und zieh einen Termin auf einen anderen Tag.</p>
+      <dl class="zeilen">
+        <div><dt data-en="Five views">Fünf Ansichten</dt>
+          <dd data-en="Year, month, week, day and list. Flip with the mouse wheel, the arrows or a swipe; a mini calendar and “coming up” sit in the sidebar.">Jahr, Monat, Woche, Tag und Liste. Blättern mit Mausrad, Pfeilen oder Wischen; Mini-Kalender und „Demnächst“ stehen in der Seitenleiste.</dd></div>
+        <div><dt data-en="Mouse operation">Bedienung mit der Maus</dt>
+          <dd data-en="Drag an event to move it, hold Ctrl or Shift to copy it, drop it onto another event to merge both. The right-click menu copies, edits, moves, hides and deletes.">Termin ziehen verschiebt ihn, mit Strg oder Umschalt wird er kopiert, auf einen anderen Termin abgelegt werden beide zusammengeführt. Das Rechtsklick-Menü kopiert, bearbeitet, verschiebt, blendet aus und löscht.</dd></div>
+        <div><dt data-en="Recurring events">Serientermine</dt>
+          <dd data-en="Weekly to yearly, free intervals, “first Monday in May”, relative to Easter or Advent, weekday and month conditions, an end after n occurrences – and exceptions for single occurrences.">Wöchentlich bis jährlich, freie Intervalle, „erster Montag im Mai“, relativ zu Ostern oder Advent, Bedingungen für Wochentage und Monate, Ende nach n Terminen – und Ausnahmen für einzelne Vorkommen.</dd></div>
+        <div><dt data-en="Categories">Kategorien</dt>
+          <dd data-en="Your own categories with colour and emoji. Events follow the colour of their category, and whole categories can be hidden.">Eigene Kategorien mit Farbe und Emoji. Termine folgen der Farbe ihrer Kategorie, ganze Kategorien lassen sich ausblenden.</dd></div>
+        <div><dt data-en="Birthdays and holidays">Geburtstage und Feiertage</dt>
+          <dd data-en="Birthdays show the age, memorial days remember the deceased. Austrian holidays and special days are calculated for every year.">Geburtstage zeigen das Alter, Gedenktage erinnern an Verstorbene. Österreichische Feiertage und besondere Tage werden für jedes Jahr berechnet.</dd></div>
+        <div><dt data-en="Search and conflicts">Suche und Konflikte</dt>
+          <dd data-en="The search covers titles, notes, categories and holidays. Overlapping events are flagged when you save.">Die Suche findet Titel, Notizen, Kategorien und Feiertage. Überschneidungen werden beim Speichern gemeldet.</dd></div>
+        <div><dt data-en="Undo and safety">Rückgängig und Sicherheit</dt>
+          <dd data-en="Undo for the last 30 changes, restore points before every import, and clear delete buttons. The confirmation for single events can be switched off.">Rückgängig für die letzten 30 Änderungen, Sicherungspunkte vor jedem Import und eindeutige Löschknöpfe. Die Rückfrage bei einzelnen Terminen lässt sich abschalten.</dd></div>
+        <div><dt data-en="Import, export, maintenance">Import, Export, Wartung</dt>
+          <dd data-en="ICS import with preview and ICS export for Google Calendar, Outlook and Thunderbird. JSON backup with merge or replace. The maintenance removes duplicates after showing a preview.">ICS-Import mit Vorschau und ICS-Export für Google Kalender, Outlook und Thunderbird. JSON-Backup mit Zusammenführen oder Ersetzen. Die Wartung entfernt Duplikate nach einer Vorschau.</dd></div>
+        <div><dt data-en="Desktop and mobile">Desktop und Mobil</dt>
+          <dd data-en="Dark mode with an accent colour, full screen, and a layout for phones with swipe and long press. On Android it starts like an app from the home screen.">Dunkelmodus mit Akzentfarbe, Vollbild und ein Layout für das Handy mit Wischen und langem Drücken. Unter Android startet er vom Startbildschirm wie eine App.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="rand">
+      <h2 data-en="Pictures">Bilder</h2>
+      <p class="unter" data-en="Click a picture to see it in full size.">Ein Klick zeigt das Bild in voller Größe.</p>
+      <div class="bilder">
+        <figure class="breit"><a href="docs/screenshots/monat.png"><img src="docs/screenshots/monat.png" alt="Monatsansicht" loading="lazy"></a><figcaption data-en="Month view with the month’s event list">Monatsansicht mit der Terminliste des Monats</figcaption></figure>
+        <figure class="schmal"><a href="docs/screenshots/mobil.png"><img src="docs/screenshots/mobil.png" alt="Ansicht am Handy" loading="lazy"></a><figcaption data-en="On a phone">Am Handy</figcaption></figure>
+        <figure><a href="docs/screenshots/jahr.png"><img src="docs/screenshots/jahr.png" alt="Jahresansicht" loading="lazy"></a><figcaption data-en="Year view">Jahresansicht</figcaption></figure>
+        <figure><a href="docs/screenshots/dunkel.png"><img src="docs/screenshots/dunkel.png" alt="Dunkelmodus" loading="lazy"></a><figcaption data-en="Dark mode">Dunkelmodus</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="rand">
+      <h2 data-en="How to use it">So benutzt du ihn</h2>
+      <p class="unter" data-en="There is nothing to install.">Es gibt nichts zu installieren.</p>
+      <ol class="schritte">
+        <li><h3 data-en="Download">Herunterladen</h3><p data-en="Save the HTML file wherever you like – on your disk, a USB stick or your phone.">Speichere die HTML-Datei, wo du willst – auf der Festplatte, einem USB-Stick oder am Handy.</p></li>
+        <li><h3 data-en="Open">Öffnen</h3><p data-en="Open the file in Firefox, Chrome or Edge. The calendar starts at once and works without internet.">Öffne die Datei in Firefox, Chrome oder Edge. Der Kalender startet sofort und läuft ohne Internet.</p></li>
+        <li><h3 data-en="Back up">Sichern</h3><p data-en="Save a backup file regularly under “ICS ↕ → JSON Backup”. It also moves your calendar to another device.">Speichere unter „ICS ↕ → JSON Backup“ regelmäßig eine Sicherungsdatei. Mit ihr ziehst du auch auf ein anderes Gerät um.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="rand zwei">
+      <div>
+        <h2 data-en="Where your events are">Wo deine Termine liegen</h2>
+        <p data-en="Events are stored in your browser, on your device. Clearing the browser data deletes them, so keep backups.">Die Termine liegen in deinem Browser, auf deinem Gerät. Wer die Browserdaten löscht, löscht auch die Termine – deshalb Backups anlegen.</p>
+        <p data-en="“Open the calendar” on this page stores them in this browser for this website. The downloaded file keeps its own, separate events.">„Kalender öffnen“ auf dieser Seite speichert sie in diesem Browser für diese Website. Die heruntergeladene Datei führt ihre eigenen, getrennten Termine.</p>
+      </div>
+      <div>
+        <h2 data-en="Privacy and licence">Datenschutz und Lizenz</h2>
+        <p data-en="The calendar sends no data anywhere. There is no tracking, no analytics and no advertising, and this page loads nothing from other servers.">Der Kalender sendet keine Daten. Es gibt kein Tracking, keine Statistik und keine Werbung, und diese Seite lädt nichts von fremden Servern.</p>
+        <p data-en="Free and open source under the MIT licence. Bug reports and ideas are welcome on GitHub.">Frei und quelloffen unter der MIT-Lizenz. Fehlermeldungen und Ideen sind auf GitHub willkommen.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="rand">
+    <span>© 2026 Heinz Bundschuh</span>
+    <span><a href="https://github.com/HeinzBundschuh/endless-calendar-pro/blob/main/LICENSE" data-en="MIT licence">MIT-Lizenz</a></span>
+    <span><a href="https://github.com/HeinzBundschuh/endless-calendar-pro/issues" data-en="Report a problem">Problem melden</a></span>
+  </div>
+</footer>
+
+<script>
+"use strict";
+/* Dateiname des Kalenders – bei einer neuen Version hier anpassen. */
+const APP_FILE = "endless_calendar_pro_V3_1.html";
+document.querySelectorAll("[data-app]").forEach((a) => a.setAttribute("href", APP_FILE));
+
+/* ---------- Sprache ---------- */
+const texts = [...document.querySelectorAll("[data-en]")].map((el) => ({ el, de: el.textContent, en: el.dataset.en }));
+let lang = "de";
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+  for (const t of texts) t.el.textContent = l === "en" ? t.en : t.de;
+  document.title = l === "en"
+    ? "Endless Calendar Pro – a calendar in one single file"
+    : "Endless Calendar Pro – ein Kalender in einer einzigen Datei";
+  document.getElementById("langDe").setAttribute("aria-pressed", String(l === "de"));
+  document.getElementById("langEn").setAttribute("aria-pressed", String(l === "en"));
+  drawLeaf();
+  try { sessionStorage.setItem("ecpPageLang", l); } catch (e) {}
+}
+document.getElementById("langDe").addEventListener("click", () => setLang("de"));
+document.getElementById("langEn").addEventListener("click", () => setLang("en"));
+
+/* ---------- Kalenderblatt mit dem heutigen Datum ---------- */
+function isoWeek(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const start = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - start) / 86400000 + 1) / 7);
+}
+function drawLeaf() {
+  const now = new Date();
+  const loc = lang === "en" ? "en-GB" : "de-AT";
+  document.getElementById("blattMonat").textContent = now.toLocaleDateString(loc, { month: "long", year: "numeric" });
+  document.getElementById("blattTag").textContent = now.getDate();
+  document.getElementById("blattWochentag").textContent = now.toLocaleDateString(loc, { weekday: "long" });
+  const dayOfYear = Math.round((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(now.getFullYear(), 0, 0)) / 86400000);
+  document.getElementById("blattKw").textContent = lang === "en"
+    ? `Week ${isoWeek(now)}, day ${dayOfYear}`
+    : `KW ${isoWeek(now)}, Tag ${dayOfYear}`;
+  document.getElementById("blatt").classList.toggle("rot", now.getDay() === 0);
+}
+
+/* ---------- Kalender zum Ausprobieren ----------
+   Der echte Kalender wird geladen und in einem abgeschotteten Rahmen gezeigt.
+   Er bekommt einen eigenen Speicher nur im Arbeitsspeicher und Beispieltermine
+   rund um das heutige Datum. Die echten Termine eines Besuchers bleiben unberührt. */
+function demoEvents() {
+  const pad = (n) => String(n).padStart(2, "0");
+  const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const today = new Date();
+  const first = new Date(today.getFullYear(), today.getMonth(), 1);
+  const day = (n) => fmt(new Date(first.getFullYear(), first.getMonth(), n));
+  const nextWeekday = (wd) => { // erster Wochentag wd (0=So) im aktuellen Monat
+    const d = new Date(first); while (d.getDay() !== wd) d.setDate(d.getDate() + 1); return fmt(d);
+  };
+  let n = 0;
+  const ev = (categoryId, title, date, o = {}) => Object.assign({
+    id: "demo" + (++n), categoryId, title, notes: "", date, time: "", timeEnd: "", dateEnd: "",
+    repeat: "none", reminder: 0, displayType: "termin", exdates: [],
+  }, o);
+  const birthYear = (age, d) => `${today.getFullYear() - age}-${d.slice(5)}`;
+  return [
+    ev("termin", "Team-Besprechung", nextWeekday(2), { time: "09:00", timeEnd: "10:00", repeat: "weekly" }),
+    ev("privat", "Chorprobe", nextWeekday(5), { time: "19:30", timeEnd: "21:00", repeat: "weekly" }),
+    ev("sonstiges", "Wochenmarkt", nextWeekday(6), { time: "08:00", timeEnd: "10:00", repeat: "weekly" }),
+    ev("geburtstag", "Anna Muster", birthYear(41, day(8)), { repeat: "yearly", reminder: 1 }),
+    ev("geburtstag", "Max Beispiel", birthYear(36, day(21)), { repeat: "yearly" }),
+    ev("termin", "Zahnarzt", day(14), { time: "09:30", timeEnd: "10:30", notes: "Kontrolle" }),
+    ev("termin", "Elternabend", day(12), { time: "19:00", timeEnd: "20:30" }),
+    ev("termin", "Kundentermin", day(22), { time: "14:00", timeEnd: "15:30" }),
+    ev("sonstiges", "Stadtfest", day(17)),
+    ev("privat", "Urlaub", day(24), { dateEnd: day(27) }),
+    ev("termin", "Autoservice", day(5), { time: "08:00", timeEnd: "09:00" }),
+  ];
+}
+
+function loadDemo() {
+  const frame = document.getElementById("demo");
+  const seed = JSON.stringify({ events: demoEvents() }).replace(/</g, "\\u003c");
+  const boot = `<script>(function(){var m={};var s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null},` +
+    `setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}},` +
+    `key:function(i){return Object.keys(m)[i]||null},get length(){return Object.keys(m).length}};` +
+    `try{Object.defineProperty(window,"localStorage",{value:s,configurable:true})}catch(e){}` +
+    `s.setItem("ecpro_v1",${JSON.stringify(seed)});s.setItem("ecpro_lastBackup",new Date().toISOString());})();<\/script>`;
+  fetch(APP_FILE)
+    .then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then((html) => { frame.srcdoc = html.replace(/<head>/i, "<head>" + boot); })
+    .catch(() => {
+      // Ohne Webserver (Seite direkt von der Festplatte geöffnet): Rahmen ausblenden.
+      document.getElementById("probe").hidden = true;
+    });
+}
+
+let startLang = /^de\b/i.test(navigator.language || "de") ? "de" : "en";
+try { startLang = sessionStorage.getItem("ecpPageLang") || startLang; } catch (e) {}
+setLang(startLang);
+loadDemo();
+</script>
+</body>
+</html>
